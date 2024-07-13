@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Operations on Dustbins</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background-image: url(img/wp1.webp);
+      background-size: cover;
+      background-repeat: no-repeat;
+  }
+  
+  .container {
+      width: 300px;
+      margin: 50px auto;
+      padding: 20px;
+      backdrop-filter: blur(50px);
+      /* background-color: rgba(255, 255, 255, 0.8);  */
+      /* Adjust the opacity as needed */
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  h2 {
+      text-align: center;
+      margin-bottom: 20px;
+  }
+  
+  .input-group {
+      margin-bottom: 15px;
+  }
+  
+  label {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 5px;
+  }
+  
+  input[type="text"],
+  input[type="number"] {
+      width: 100%;
+      height: 30px;
+      padding: 5px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+  }
+  
+  button {
+      width: 100%;
+      height: 40px;
+      margin-top: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+  }
+  
+  button:hover {
+      background-color: #45a049;
+  }
+  </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Dustbins Management</h2>
+        <form id="dustbin-form">
+            <div class="input-group">
+                <label for="Dustbin_id">Dustbin ID:</label>
+                <input type="text" id="Dustbin_id" required>
+            </div>
+            <div class="input-group">
+                <label for="Name">Corporation Name:</label>
+                <input type="text" id="Name" required>
+            </div>
+            
+            <div class="input-group">
+                <label for="Location">Location:</label>
+                <input type="text" id="Location" required>
+            </div>
+            <div class="input-group">
+                <label for="Status">Status:(Blynk link)</label>
+                <input type="text" id="Status" required>
+            </div>
+           
+            <button type="button" id="AddBtn">Add</button>
+            <button type="button" id="UpdBtn">Update</button>
+            <button type="button" id="DelBtn">Delete</button>
+        </form>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getDatabase, ref, child, set, get, update, remove } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCH3Pj6uqO7B2gvHieqZbQMerdwlq9rjCE",
+            authDomain: "authentication-f342b.firebaseapp.com",
+            databaseURL: "https://authentication-f342b-default-rtdb.firebaseio.com",
+            projectId: "authentication-f342b",
+            storageBucket: "authentication-f342b.appspot.com",
+            messagingSenderId: "1033262968884",
+            appId: "1:1033262968884:web:bcb1f0e1639249e29eda61"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth();
+
+        let Dustbin_id = document.getElementById('Dustbin_id');
+        let Location = document.getElementById('Location');
+        let Status = document.getElementById('Status'); // New line to select status input
+
+        let AddBtn = document.getElementById('AddBtn');
+        let UpdBtn = document.getElementById('UpdBtn');
+        let RetBtn = document.getElementById('RetBtn');
+        let DelBtn = document.getElementById('DelBtn');
+
+        // Function to fetch current user's UID
+        function getCurrentUserUID() {
+            return new Promise((resolve, reject) => {
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        resolve(user.uid);
+                    } else {
+                        reject(new Error('No user is signed in.'));
+                    }
+                });
+            });
+        }
+
+        // Function to add data to the database
+        async function AddData() {
+            try {
+                const uid = await getCurrentUserUID();     //wait until the promis is settele
+                set(ref(db, `users/${uid}/municipality/${Dustbin_id.value}`), {
+                    id: Dustbin_id.value ,
+                    name: Name.value, // Include name field
+                    location: Location.value,
+                    status: Status.value // Include status field in the data
+                });
+                alert("Data Added Successfully !!");
+            } catch (error) {
+                alert("Unsuccessful");
+                console.error(error);
+            }
+        }
+
+        // Add event listeners
+        AddBtn.addEventListener('click', AddData);
+
+        // Implement other CRUD operations similarly...
+
+
+        function UpdData() {
+            getCurrentUserUID().then((uid) => {
+                update(ref(db, `users/${uid}/municipality/${Dustbin_id.value}`), {
+                    id: Dustbin_id.value ,
+                    name: Name.value, // Include name field
+                    location: Location.value,
+                    status: Status.value // Include status field in the data
+                }).then(() => {
+                    alert("Data Updated Successfully !!");
+                }).catch((error) => {
+                    console.error(error);
+                    alert("Error updating data");
+                });
+            }).catch((error) => {
+                console.error(error);
+                alert("Error retrieving UID");
+            });
+        }
+
+        function DelData() {
+            getCurrentUserUID().then((uid) => {
+                remove(ref(db, `users/${uid}/municipality/${Dustbin_id.value}`)).then(() => {
+                    alert("Data Deleted Successfully !!");
+                }).catch((error) => {
+                    console.error(error);
+                    alert("Error deleting data");
+                });
+            }).catch((error) => {
+                console.error(error);
+                alert("Error retrieving UID");
+            });
+        }
+
+        UpdBtn.addEventListener('click', UpdData);
+        DelBtn.addEventListener('click', DelData);
+
+    </script>
+    
+</body>
+</html>
